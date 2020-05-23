@@ -175,7 +175,7 @@ exports.deleteBootcamp = asyncHandeler(async (req, res, next) => {
     if (!bootcamp) {
         return next(new errorResponse(`Bootcamp not found with id equal to ${req.params.id}`, 404)) 
     }
-    /// bootcamp not belongs to user and user is not an admin >> he is not able to modify the bootcamp
+    /// bootcamp not belongs to user and user is not an admin >> he is not able to delete the bootcamp
     if( req.user.role !== 'admin' && req.user._id != bootcamp.user.toString()  ) {
         return next(new errorResponse(`user not authorized to delete this bootcamp`, 401)) 
     }

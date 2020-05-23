@@ -30,6 +30,8 @@ const reviewSchema = mongooose.Schema({
 },{
     timestamps: true
 })
+
+/// calculate average rating per bootcamp
 reviewSchema.statics.CalcAverageRating = async function (bootcampId){
     try{
         const reviews = await this.model('Review').find({ bootcamp: bootcampId })
@@ -52,7 +54,5 @@ reviewSchema.post('save', async function(next){
 reviewSchema.post('remove', async function(next){
      await this.constructor.CalcAverageRating(this.bootcamp)
 })
-
-
 
 module.exports = mongooose.model('Review', reviewSchema)

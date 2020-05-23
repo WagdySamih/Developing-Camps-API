@@ -125,8 +125,6 @@ bootcampSchema.pre('remove', async function(next){
 })
 
 
-
-
 /// create a shareble link from name
 bootcampSchema.pre('save', function (next) {
     const bootCamp = this
@@ -159,7 +157,5 @@ bootcampSchema.pre('save', async function (next) {
     bootCamp.id = undefined
     next()
 })
-
-
 
 module.exports = mongooose.model('Bootcamp', bootcampSchema)

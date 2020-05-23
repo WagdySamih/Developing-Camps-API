@@ -5,17 +5,21 @@ const errorResponse = require('../utiles/errorResponse')
 
 
 const Protect = asyncHandeler(async(req, res, next)=>{
-    if(! req.header('Authorization')){
-        return(next( new errorResponse('User Did Not Authenticate!', 401)))
+    let token
+    if( req.header('Authorization')){
+        token = req.header('Authorization').replace('Bearer ', '')
+    } else if (req.cookies.token) {
+        token = req.cookies.token
     }
-
-    const token = req.header('Authorization').replace('Bearer ', '')
+    if(! token){
+        return(next(new errorResponse('User Did Not Authenticate!', 401)))
+    }
     const encoded = jwt.verify(token, process.env.JWT_SECRET_KEY)
-    const user = await User.findById(encoded.id)
+    const user = await User.findOne({_id:encoded.id, 'tokens.token':token})
     if(!user){
         return(next(new errorResponse('User Did Not Authenticate!', 401)))
     }
-
+    req.token = token
     req.user = user
     next()
 

@@ -5,6 +5,8 @@ const {Protect} = require('../middleware/auth')
 const {
     register,
     login,
+    logout,
+    logoutAll,
     getMyProfile,
     forgetPassword,
     resetPassword,
@@ -20,6 +22,13 @@ router
     .route('/auth/login')
     .post(login)
 
+router
+    .route('/auth/logout')
+    .post(Protect, logout)
+
+router
+    .route('/auth/logoutall')
+    .post(Protect, logoutAll)
 router
     .route('/auth/me')
     .get(Protect, getMyProfile)
@@ -39,4 +48,6 @@ router
 router
     .route('/auth/updatepassword')
     .patch(Protect, updatePassword)
+
+
 module.exports = router

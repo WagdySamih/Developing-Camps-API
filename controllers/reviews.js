@@ -10,12 +10,54 @@ const asyncHandeler = require('../middleware/asyncHandeler')
  *   access         Public
  */
 exports.getReviews = asyncHandeler(async (req, res, next) => {
+    /**
+     *      can sort by name, createdAt
+     *          ex:  sort=createdAt | sort=title | sort=rating 
+     * 
+     *      can set page and limit for each page  
+     *          ex:   page=x&limit=y 
+     */
+    query = Review.find({bootcamp: req.params.bootcampId})
+
+    /// sorting
+    if (req.query.sort) {
+        const sortBy = req.query.sort.split(',').join(' ')
+        query = query.sort(sortBy)
+    } else {
+        query = query.sort('-createdAt')
+    }
+
+    /// Pagination
+    const page = parseInt(req.query.page) | 1
+    const limit = parseInt(req.query.limit) | 10
+    const startIndex = (page - 1) * limit
+    const finalIndex = page * limit
+    const total = await Review.countDocuments()
+
+
+    query = query.skip(startIndex).limit(limit)
+
+    /// include next and previous pagination info in api
+    const pagination = {}
+    if (finalIndex < total) {
+        pagination.next = {
+            page: page + 1,
+            limit
+        }
+    }
+    if (startIndex > 0) {
+        pagination.prev = {
+            page: page - 1,
+            limit
+        }
+    }
+
+    /// Executing the query
     const bootcamp = await Bootcamp.findById(req.params.bootcampId)
     if(!bootcamp){
         return next(new errorResponse(`Bootcamp not found with id equal to ${req.params.bootcampId}`, 404))
     }
-
-    const reviews = await Review.find({bootcamp: req.params.bootcampId})
+    const reviews = await query
 	res.json({
 		success: true,
 		count: reviews.length,

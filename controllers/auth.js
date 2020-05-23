@@ -5,8 +5,10 @@ const asyncHandeler = require('../middleware/asyncHandeler')
 const ResetPasswordTokenEmail = require('../utiles/sendEmail')
 
 
-const sendTokenResponse = (user, statusCode, res) => {
+const sendTokenResponse = async(user, statusCode, res) => {
     const token = user.getSignedjwtToken()
+    user.tokens = user.tokens.concat({ token })
+    await user.save()
     const options = {
         expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRE_DATE * 24 * 60 * 60 * 1000),
         httpOnly: true
@@ -61,6 +63,43 @@ exports.login = asyncHandeler(async (req, res, next) => {
     sendTokenResponse(user, 200, res)
 })
 
+/**
+ *   description    Logout a user / clear cookie
+ *   route          POST /auth/logout
+ *   access         Private
+ */
+exports.logout = asyncHandeler(async (req, res, next) => {
+    res.cookie('token','undefined',{
+        expires: new Date(Date.now + 1000*10), 
+        httpOnly: true
+    })
+    req.user.tokens = req.user.tokens.filter((token)=> token.token !== req.token )
+    await req.user.save()
+
+    res.json({
+        success: true,
+        data:{}
+    })
+})
+
+/**
+ *   description    Logout a user from all accounts / clear cookie
+ *   route          POST /auth/logoutal
+ *   access         Private
+ */
+exports.logoutAll = asyncHandeler(async (req, res, next) => {
+    res.cookie('token','undefined',{
+        expires: new Date(Date.now + 1000*10), 
+        httpOnly: true
+    })
+    req.user.tokens =[]
+    await req.user.save()
+
+    res.json({
+        success: true,
+        data:{}
+    })
+})
 /**
  *   description    get user profile
  *   route          POST /auth/me
@@ -170,7 +209,7 @@ exports.updateDetails = asyncHandeler(async (req, res, next) => {
  *   route          PATCH /auth/updatepassword
  *   access         Private
  *
- *   req.nody contains new password and old password
+ *   req.nody contains new password  and old password
  */
 exports.updatePassword = asyncHandeler(async (req, res, next) => {
  

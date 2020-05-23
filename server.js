@@ -3,10 +3,16 @@ const express = require('express')
 
 const fileuplaod = require('express-fileupload')
 const cookieParser = require('cookie-parser')
+const mongoSanitize = require('express-mongo-sanitize')
+const helmet = require('helmet')
+const xss = require('xss-clean')
+const rateLimit = require('express-rate-limit')
+const hpp = require('hpp')
 
 const dotenv = require('dotenv')
 const colors = require('colors')
 const morgan = require('morgan')
+ 
 
 dotenv.config({path:'./config/config.env'})
 require('./config/db')
@@ -28,6 +34,17 @@ if(process.env.NODE_ENV === 'development'){
 app.use(express.json())
 app.use(fileuplaod()) 
 app.use(cookieParser())
+app.use(mongoSanitize()) ///sanitize data
+app.use(helmet())        /// add security headers
+app.use(xss())           /// prevent cross site scripting
+app.use(hpp())           /// prevent http params polution
+
+/// set limit to max of 100 request per 10 minutes
+const limiter = rateLimit({
+    windowsMs: 10 * 60 * 1000,
+    max: 100
+})
+app.use(limiter)
 app.use(express.static(path.join(__dirname,'public')))
 
 
